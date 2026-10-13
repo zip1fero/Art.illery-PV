@@ -1,5 +1,5 @@
-/* Art.illery PV 1.9.8: αποθήκευση της εφαρμογής για χρήση χωρίς ίντερνετ */
-const CACHE = 'artillery-pv-1.9.8';
+/* Art.illery PV 1.9.9: αποθήκευση της εφαρμογής για χρήση χωρίς ίντερνετ */
+const CACHE = 'artillery-pv-1.9.9';
 const FILES = ['./', './index.html', './manifest.webmanifest', './apple-touch-icon.png', './icon-192.png', './icon-512.png', './favicon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(f => new Request(f, { cache: 'reload' })))).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('artillery-pv-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
