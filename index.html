@@ -2017,9 +2017,30 @@ return maplibregl$1;
 <script></script>
 <script></script>
 <script>
-/* web: λειτουργία χωρίς ίντερνετ μετά το πρώτο άνοιγμα */
+/* web: λειτουργία χωρίς ίντερνετ μετά το πρώτο άνοιγμα + ειδοποίηση νέας έκδοσης */
 if ('serviceWorker' in navigator && location.protocol === 'https:' && location.hostname !== 'appassets.androidplatform.net')
-  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  (() => {                                   // αμέσως, χωρίς να περιμένει να φορτώσουν οι χάρτες
+    const CUR = '1.9.8';
+    let shown = false, reg = null;
+    const banner = () => {
+      if (shown) return; shown = true;
+      let en = false; try { en = (JSON.parse(localStorage.getItem('mgrs-diathima-v1') || '{}').lang) === 'en'; } catch (e) {}
+      const b = document.createElement('button'); b.type = 'button'; b.id = 'apv-update'; b.setAttribute('data-noi18n', '');
+      b.textContent = en ? 'A new version is available – tap to update' : 'Υπάρχει νέα έκδοση – πάτα για ενημέρωση';
+      b.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 10px);z-index:100000;' +
+        'border:0;border-radius:22px;padding:12px 18px;font:600 15px system-ui,sans-serif;background:var(--accent,#ff6a00);color:var(--accent-fg,#000);' +
+        'box-shadow:0 8px 24px rgb(0 0 0 / .4);max-width:92vw;cursor:pointer';
+      b.onclick = () => { b.textContent = '…'; (reg ? reg.update() : Promise.resolve()).catch(() => {}).then(() => location.reload()); };
+      document.body.appendChild(b);
+    };
+    // μικρό αρχείο version.json: αν ο server έχει άλλη έκδοση από αυτή που τρέχει, εμφανίζεται το μήνυμα
+    const chk = () => fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.json() : null)
+      .then(o => { if (o && o.v && o.v !== CUR) { if (reg) reg.update().catch(() => {}); banner(); } }).catch(() => {});
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => { reg = r; }).catch(() => {});
+    setTimeout(chk, 4000);
+    setInterval(chk, 30 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') chk(); });
+  })();
 </script>
 </body>
 </html>
